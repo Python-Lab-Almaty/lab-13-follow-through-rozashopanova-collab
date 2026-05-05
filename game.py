@@ -156,6 +156,7 @@ dynamic_obstacles = []
 # ----------------------------
 steps = 0
 penalties = 0
+lives = 3
 
 # ----------------------------
 # 🟢 СКОРОСТЬ
@@ -271,7 +272,7 @@ def draw_all():
     score_drawer.goto(0, -HEIGHT//2 + 40)
     score = steps - penalties
     score_drawer.clear()
-    score_drawer.write(f"Steps: {steps} | Penalties: {penalties} | Score: {score}",
+    score_drawer.write(f"Steps: {steps} | Penalties: {penalties} | Lives: {lives} | Score: {score}",
                        align="center", font=("Arial", 16, "bold"))
     
     screen.update()
@@ -290,8 +291,9 @@ def check_collision():
     global penalties
     for ox, oy, (w, h) in impassable_obstacles:
         if rect_collision(hero.xcor(), hero.ycor(), ox, oy, w, h, hero_radius=15):
-            penalties += 10
-            print(f"⚠️ ШТРАФ! (-10 баллов)")
+            penalties += 20
+            lives -= 1
+            print(f"⚠️ ШТРАФ! (-20 баллов)")
             hero.goto(hero.xcor() - vx*3, hero.ycor() - vy*3)
             return "penalty"
     
@@ -421,6 +423,7 @@ while True:
         print("🎯 Reached B! RETURN TO A!")
         print(f"🟢 Теперь будут появляться препятствия!")
         going_forward = False
+        hero.color('yellow')
         
         log.append({
             "event": "reached_goal_B",
@@ -461,6 +464,11 @@ while True:
     
     # Столкновение
     collision = check_collision()
+    if lives <= 0:
+        print("💀 NO LIVES LEFT! GAME OVER!")
+        save_log("no_lives")
+        break
+
     if collision == "game_over":
         print("💥 GAME OVER!")
         print(f"🟩 Препятствий: {obstacles_spawned_count}")
