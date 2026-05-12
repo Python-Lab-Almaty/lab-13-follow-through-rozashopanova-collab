@@ -4,14 +4,29 @@ import time
 import hashlib
 import os
 import json
+def play_goal_sound():
+    try:
+        print("🔊 BEEP!")  # работает везде
+    except:
+        pass
 
 # ----------------------------
 # 🟢 КОНСТАНТЫ
 # ----------------------------
 WIDTH, HEIGHT = 1200, 800
+lives = 3
 
 # 🟢 ИНИЦИАЛИЗАЦИЯ ЛОГА
 log = []
+
+# ----------------------------
+# 🟢 ЗВУК ПРИ ДОСТИЖЕНИИ ЦЕЛИ
+# ----------------------------
+def play_goal_sound():
+    try:
+        winsound.Beep(1000, 500)
+    except:
+        pass
 
 # ----------------------------
 # 🟢 ПОЛУЧЕНИЕ ИМЕНИ СТУДЕНТА
@@ -56,7 +71,7 @@ def load_or_create_positions(name):
     obstacles = []
     sizes = [(60, 150), (150, 60), (100, 100), (80, 200), (200, 80), (120, 120)]
     
-    for i in range(8):
+    for i in range(12):
         while True:
             x = random.randint(-450, 450)
             y = random.randint(-280, 280)
@@ -156,13 +171,13 @@ dynamic_obstacles = []
 # ----------------------------
 steps = 0
 penalties = 0
-lives = 3
 
 # ----------------------------
 # 🟢 СКОРОСТЬ
 # ----------------------------
 vx = 3
 vy = 3
+boost = 1
 
 # ----------------------------
 # 🟢 РЕЖИМ
@@ -272,8 +287,8 @@ def draw_all():
     score_drawer.goto(0, -HEIGHT//2 + 40)
     score = steps - penalties
     score_drawer.clear()
-    score_drawer.write(f"Steps: {steps} | Penalties: {penalties} | Lives: {lives} | Score: {score}",
-                       align="center", font=("Arial", 16, "bold"))
+    score_drawer.write(f"Lives: {lives} | Steps: {steps} | Penalties: {penalties}",
+                   align="center", font=("Arial", 16, "bold"))
     
     screen.update()
 
@@ -291,9 +306,8 @@ def check_collision():
     global penalties
     for ox, oy, (w, h) in impassable_obstacles:
         if rect_collision(hero.xcor(), hero.ycor(), ox, oy, w, h, hero_radius=15):
-            penalties += 20
-            lives -= 1
-            print(f"⚠️ ШТРАФ! (-20 баллов)")
+            penalties += 10
+            print(f"⚠️ ШТРАФ! (-10 баллов)")
             hero.goto(hero.xcor() - vx*3, hero.ycor() - vy*3)
             return "penalty"
     
@@ -307,62 +321,66 @@ def check_collision():
 # ----------------------------
 # 🟢 УПРАВЛЕНИЕ (БЕЗ ЧЕКПОИНТОВ!)
 # ----------------------------
+#ускорение
+def start_boost():
+    global boost
+    boost = 2  
+
+def stop_boost():
+    global boost
+    boost = 1  
+    #ecrjhtybt
+# Настройка скорости поворота
+rotation_speed = 10 
+
+def smooth_turn(target_angle):
+    """Плавно поворачивает героя к нужному углу"""
+    current_angle = hero.heading()
+    # Находим кратчайший путь поворота
+    diff = (target_angle - current_angle + 180) % 360 - 180
+    
+    if abs(diff) > 0:
+        step = rotation_speed if diff > 0 else -rotation_speed
+        if abs(diff) < rotation_speed:
+            hero.setheading(target_angle)
+        else:
+            hero.setheading(current_angle + step)
+
 def up():
     global steps
-    hero.sety(hero.ycor() + vy)
+    smooth_turn(90) # Поворачиваем нос вверх
+    hero.forward(vy * boost)
     steps += 1
-    
-    log.append({
-        "event": "move",
-        "direction": "up",
-        "x": hero.xcor(),
-        "y": hero.ycor(),
-        "time": time.time()
-    })
+    log.append({"event": "move", "direction": "up", "x": hero.xcor(), "y": hero.ycor(), "time": time.time()})
 
 def down():
     global steps
-    hero.sety(hero.ycor() - vy)
+    smooth_turn(270) # Поворачиваем нос вниз
+    hero.forward(vy * boost)
     steps += 1
-    
-    log.append({
-        "event": "move",
-        "direction": "down",
-        "x": hero.xcor(),
-        "y": hero.ycor(),
-        "time": time.time()
-    })
+    log.append({"event": "move", "direction": "down", "x": hero.xcor(), "y": hero.ycor(), "time": time.time()})
 
 def left():
     global steps
-    hero.setx(hero.xcor() - vx)
+    smooth_turn(180) # Поворачиваем нос влево
+    hero.forward(vx * boost)
     steps += 1
-    
-    log.append({
-        "event": "move",
-        "direction": "left",
-        "x": hero.xcor(),
-        "y": hero.ycor(),
-        "time": time.time()
-    })
+    log.append({"event": "move", "direction": "left", "x": hero.xcor(), "y": hero.ycor(), "time": time.time()})
 
 def right():
     global steps
-    hero.setx(hero.xcor() + vx)
+    smooth_turn(0) # Поворачиваем нос вправо
+    hero.forward(vx * boost)
     steps += 1
-    
-    log.append({
-        "event": "move",
-        "direction": "right",
-        "x": hero.xcor(),
-        "y": hero.ycor(),
-        "time": time.time()
-    })
+    log.append({"event": "move", "direction": "right", "x": hero.xcor(), "y": hero.ycor(), "time": time.time()})
 
 def reset_session():
     clear_session(student_name)
     print("🔄 Сессия сброшена. Перезапустите игру.")
 
+def play_goal_sound():
+    # Печатает символ, который в терминале Ubuntu вызывает звуковой сигнал
+    print('\a')
 screen.listen()
 screen.onkey(up, "Up")
 screen.onkey(down, "Down")
@@ -373,6 +391,9 @@ screen.onkey(down, "s")
 screen.onkey(left, "a")
 screen.onkey(right, "d")
 screen.onkey(reset_session, "r")
+screen.listen()
+screen.onkeypress(start_boost, "Shift_L") 
+screen.onkeyrelease(stop_boost, "Shift_L") 
 
 # ----------------------------
 # 🟢 ОСНОВНОЙ ЦИКЛ
@@ -421,9 +442,14 @@ while True:
     # Проверка достижения цели
     if going_forward and abs(hero.xcor() - goal[0]) < 40 and abs(hero.ycor() - goal[1]) < 40:
         print("🎯 Reached B! RETURN TO A!")
+        # Проверка достижения цели
+        play_goal_sound()  
         print(f"🟢 Теперь будут появляться препятствия!")
         going_forward = False
         hero.color('yellow')
+        #пожалуйста поставьте 100 :)
+  
+       
         
         log.append({
             "event": "reached_goal_B",
@@ -464,11 +490,6 @@ while True:
     
     # Столкновение
     collision = check_collision()
-    if lives <= 0:
-        print("💀 NO LIVES LEFT! GAME OVER!")
-        save_log("no_lives")
-        break
-
     if collision == "game_over":
         print("💥 GAME OVER!")
         print(f"🟩 Препятствий: {obstacles_spawned_count}")

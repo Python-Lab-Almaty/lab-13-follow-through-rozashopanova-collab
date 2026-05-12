@@ -103,6 +103,40 @@
         false
       ],
       "max_points": 45
+    },
+    "level_4": {
+      "tasks": [
+        {
+          "id": "4.4",
+          "title": "Ограниченное управление",
+          "description": "Герой может только: вперёд/назад + поворот налево/направо",
+          "hint": "Замени setx/sety на forward() и left()/right()",
+          "code_pattern": "forward\\(|left\\(|right\\(",
+          "points": 25
+        },
+        {
+          "id": "4.1",
+          "title": "Распознавание препятствий",
+          "description": "Герой должен 'видеть' препятствия на расстоянии 100 пикселей",
+          "hint": "Функция detect_obstacles() проверяет расстояние до ближайшего",
+          "code_pattern": "detect_obstacles|distance.*obstacle",
+          "points": 25
+        },
+        {
+          "id": "4.2",
+          "title": "Автоматический объезд",
+          "description": "При обнаружении препятствия герой автоматически обходит его",
+          "hint": "Добавь режим auto_pilot с простым алгоритмом обхода",
+          "code_pattern": "auto_pilot|avoid_obstacle",
+          "points": 25
+        }
+      ],
+      "completed": [
+        false,
+        false,
+        false
+      ],
+      "max_points": 75
     }
   }
 }
